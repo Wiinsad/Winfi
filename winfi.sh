@@ -94,7 +94,7 @@ function help(){
 	echo -e "\t\t${tuC}- PKMID${endC}"
 	echo -e "\t\t${tuC}- Portal Cautivo${endC}"
 	echo -e "\t\t${tuC}- EviTwin${endC}"
-	echo -e "\t\t${tuC}- Becon Flood${endC}"
+	echo -e "\t\t${tuC}- BeconFlood${endC}"
 	echo -e "\t ${bC}n)${endC} ${gC}Nombre de la tarjeta de Red.${endC}"
 	echo -e "\t\t${tuC}- Ej: -n wlan0${endC}"
 	echo -e "\t ${bC}d)${endC} ${gC}Omitir comprobación de las Dependencias.${endC}"
