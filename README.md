@@ -1,4 +1,4 @@
-# **Winfi**
+# **Winfi** - versión 1.0
 
 <p align="center">
     <img src="img/Logo.png" />
