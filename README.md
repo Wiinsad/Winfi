@@ -1,14 +1,14 @@
 # Winfi 
 
-<p align="center">![Winfi](img/Logo.png)</p>
+<center>![Winfi](img/Logo.png)</center>
 
 **Winfi** es una herramienta que sirve para el despliegue de varios ataques a redes wireless.
 
 ## Ataques disponibles:
 
-    * **Obtención de Handshake**
+* **Obtención de Handshake**
     
-    * **Beacon Flood**
+* **Beacon Flood**
     
 **Requisitos:** Contar con una tarjeta de red que acepte **modo minitor**
 
