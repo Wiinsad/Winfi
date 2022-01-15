@@ -1,6 +1,8 @@
 # **Winfi**
 
-<div style="text-align:center"><img src="img/Logo.png" /></div>
+<p align="center">
+    <img src="img/Logo.png" />
+</p>
 
 **Winfi** es una herramienta que sirve para el despliegue de varios ataques a redes wireless.
 
