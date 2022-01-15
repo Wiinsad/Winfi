@@ -36,22 +36,55 @@ function ctrl_c(){
 
 function banner(){
 	tput civis
-	echo -e "\n\t${bC}__          ___       ______ _${endC}"
+        echo -e "${grC}                                            .ccc:;'.${endC}"
 	/usr/bin/sleep .05
-	echo -e "\t${bC}\ \        / (_)     |  ____(_)${endC}"
+        echo -e "${grC}                                             :::cldOXKx:.${endC}"
 	/usr/bin/sleep .05
-	echo -e "\t${bC} \ \  /\  / / _ _ __ | |__   _ ${endC}"
+        echo -e "${grC}                                             ,,, .   .;xN0:${endC}"
 	/usr/bin/sleep .05
-	echo -e "\t${bC}  \ \/  \/ / | | '_ \|  __| | |${endC}"
+        echo -e "${grC}                                            .oodx0XKd;   :XNc${endC}"
 	/usr/bin/sleep .05
-	echo -e "\t${bC}   \  /\  /  | | | | | |    | |${endC}"
+        echo -e "${grC}                                                    c0No.  lM0${endC}"
 	/usr/bin/sleep .05
-	echo -e "\t${bC}    \/  \/   |_|_| |_|_|    |_|${endC}"
+        echo -e "${grC}                                       ..   'OO0X0o.  'XW;  'WK${endC}"
 	/usr/bin/sleep .05
-	echo -e "\n    ${pC}WinFi $version v. --- Desarrollado por ${endC}${rC}Winsad${endC}"
+        echo -e "${grC}                                    ;:KlN.        xMx   KM.  oMo${endC}"
+	/usr/bin/sleep .05
+        echo -e "${grC}                                .'kMO   oM. ;KN0.  dMl  'Xl   o;${endC}"
+	/usr/bin/sleep .05
+        echo -e "${grC}                         ..,. .,  00.  ,WO  ,OKk.  lll${endC}"
+	/usr/bin/sleep .05
+        echo -e "${grC}                     .,OXdod' .  o:   ,WX${endC}"
+	/usr/bin/sleep .05
+        echo -e "${grC}                   '.  ',.:..k: ;.   xMMxlWM'${endC}"
+	/usr/bin/sleep .05
+        echo -e "${grC}              .,lOk     .;   .c .   XXo.  oW.${endC}\t${bC}__          ___       ______ _${endC}"
+	/usr/bin/sleep .05
+        echo -e "${grC}        'c,...'';x:  '  x   .O.    ,'     x.${endC}\t${bC}\ \        / (_)     |  ____(_)${endC}"
+	/usr/bin/sleep .05
+        echo -e "${grC}       dM     ;'    d.  Ko'ox.          .. ${endC}\t${bC} \ \  /\  / / _ _ __ | |__   _ ${endC}"
+	/usr/bin/sleep .05
+        echo -e "${grC}        ':.    OWxc'xc  NMN,     .   .lo.${endC}\t${bC}  \ \/  \/ / | | '_ \|  __| | |${endC}"
+	/usr/bin/sleep .05
+        echo -e "${grC}           .:.,do;.  K0KMW.    .c  .',0${endC}\t\t${bC}   \  /\  /  | | | | | |    | |${endC}"
+	/usr/bin/sleep .05
+        echo -e "${grC}           :X         dWMX    'X   . .'${endC}\t\t${bC}    \/  \/   |_|_| |_|_|    |_|${endC}"
+	/usr/bin/sleep .05
+        echo -e "${grC}          dMM,         .oNl    x     .${endC}\t       ${pC}WinFi $version v. --- Desarrollado por ${endC}${rC}Winsad${endC}"
+	/usr/bin/sleep .05
+        echo -e "${grC}         kMMMW,           'c   ,${endC}"
+	/usr/bin/sleep .05
+        echo -e "${grC}         oo. .xW.            :${endC}"
+	/usr/bin/sleep .05
+        echo -e "${grC}       ,      OO            .${endC}"
+	/usr/bin/sleep .05
+        echo -e "${grC}      .       ld${endC}"
+	/usr/bin/sleep .05
+        echo -e "${grC}              d${endc}"
 	/usr/bin/sleep 1
 
 }
+
 
 function help(){
 
