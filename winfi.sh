@@ -541,14 +541,7 @@ function startA(){
 				fi
 			fi
 		fi
-	elif [ $(echo $attackMode | tr a-z A-Z) == "PKMID" ]; then
-
-		echo " "
-
-	elif [ $(echo $attackMode | tr a-z A-Z) == "EVILTWIN" ]; then
-
-		echo " "
-
+		
 	elif [ $(echo $attackMode | tr a-z A-Z) == "BECONFLOOD" ]; then
 		clear
 		echo -e "\n${yC} [*]${endC}${bC} Iniciando modo de ataque $attackMode .${endC}"
